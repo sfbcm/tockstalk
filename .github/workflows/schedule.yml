@@ -47,7 +47,7 @@ jobs:
         if: steps.last_status.outputs.last_status != 'success'
 
       - name: Run Booking Script with Proxy
-        run: npx cypress run --config-file cypress.config.js --env configFile=cypress.env.json
+        run: npm test
         env:
           # Set proxy only for this step
           HTTP_PROXY: "http://${{ secrets.PROXY_USER }}:${{ secrets.PROXY_PASSWORD }}@gate.nodemaven.com:8080"
