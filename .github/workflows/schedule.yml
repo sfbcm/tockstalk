@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'the config to use for the Cypress environment'
+        description: 'The config to use for the Cypress environment'
         required: false
         default: 'sushi'
   schedule:
@@ -22,20 +22,34 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: Mercymeilya/last-workflow-status@v0.3.3
+
+      - name: Check last workflow status
+        uses: Mercymeilya/last-workflow-status@v0.3.3
         id: last_status
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: actions/setup-node@v3
         if: steps.last_status.outputs.last_status != 'success'
         with:
           node-version-file: .node-version
           cache: npm
           cache-dependency-path: package-lock.json
-      - run: echo '${{ secrets.CYPRESS_ENV }}' > cypress.env.json
+
+      - name: Set up Cypress environment
+        run: echo '${{ secrets.CYPRESS_ENV }}' > cypress.env.json
         if: steps.last_status.outputs.last_status != 'success'
-      - run: npm ci
+
+      - name: Install dependencies
+        run: npm ci
         if: steps.last_status.outputs.last_status != 'success'
-      - run: npm test
+
+      - name: Install Cypress
+        run: npm install cypress --save-dev
         if: steps.last_status.outputs.last_status != 'success'
-      - uses: gautamkrishnar/keepalive-workflow@v1 # because github will kill this after 60 days
+
+      - name: Run Booking Script
+        run: npx cypress run --config-file cypress.config.js --env configFile=cypress.env.json
+        if: steps.last_status.outputs.last_status != 'success'
+
+      - uses: gautamkrishnar/keepalive-workflow@v1 # because GitHub will kill this after 60 days
