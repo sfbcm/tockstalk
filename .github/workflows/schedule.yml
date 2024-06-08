@@ -15,13 +15,10 @@ jobs:
     name: Attempt Booking
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment || 'sushi' }}
-    env:
-      HTTP_PROXY: "http://${{ secrets.PROXY_USER }}:${{ secrets.PROXY_PASSWORD }}@gate.nodemaven.com:8080"
-      HTTPS_PROXY: "http://${{ secrets.PROXY_USER }}:${{ secrets.PROXY_PASSWORD }}@gate.nodemaven.com:8080"
-      NO_PROXY: "localhost,127.0.0.1"
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Check last workflow status
         uses: Mercymeilya/last-workflow-status@v0.3.3
@@ -29,7 +26,8 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         if: steps.last_status.outputs.last_status != 'success'
         with:
           node-version-file: .node-version
@@ -48,8 +46,13 @@ jobs:
         run: npm install cypress --save-dev
         if: steps.last_status.outputs.last_status != 'success'
 
-      - name: Run Booking Script
+      - name: Run Booking Script with Proxy
         run: npx cypress run --config-file cypress.config.js --env configFile=cypress.env.json
+        env:
+          # Set proxy only for this step
+          HTTP_PROXY: "http://${{ secrets.PROXY_USER }}:${{ secrets.PROXY_PASSWORD }}@gate.nodemaven.com:8080"
+          HTTPS_PROXY: "http://${{ secrets.PROXY_USER }}:${{ secrets.PROXY_PASSWORD }}@gate.nodemaven.com:8080"
+          NO_PROXY: "localhost,127.0.0.1"
         if: steps.last_status.outputs.last_status != 'success'
 
       - uses: gautamkrishnar/keepalive-workflow@v1 # because GitHub will kill this after 60 days
