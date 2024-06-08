@@ -42,10 +42,6 @@ jobs:
         run: npm ci
         if: steps.last_status.outputs.last_status != 'success'
 
-      - name: Install Cypress
-        run: npm install cypress --save-dev
-        if: steps.last_status.outputs.last_status != 'success'
-
       - name: Run Booking Script with Proxy
         run: npm test
         env:
