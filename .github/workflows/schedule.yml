@@ -22,26 +22,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
-      - name: Check last workflow status
-        uses: Mercymeilya/last-workflow-status@v0.3.3
+      - uses: Mercymeilya/last-workflow-status@v0.3.3
         id: last_status
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-
       - uses: actions/setup-node@v3
         if: steps.last_status.outputs.last_status != 'success'
         with:
           node-version-file: .node-version
           cache: npm
           cache-dependency-path: package-lock.json
-
-      - name: Set up Cypress environment
-        run: echo '${{ secrets.CYPRESS_ENV }}' > cypress.env.json
+      - run: echo '${{ secrets.CYPRESS_ENV }}' > cypress.env.json
         if: steps.last_status.outputs.last_status != 'success'
-
-      - name: Run Booking Script
-        run: npm test
+      - run: npm ci
         if: steps.last_status.outputs.last_status != 'success'
-
-      - uses: gautamkrishnar/keepalive-workflow@v1 # because GitHub will kill this after 60 days
+      - run: npm test
+        if: steps.last_status.outputs.last_status != 'success'
+      - uses: gautamkrishnar/keepalive-workflow@v1 # because github will kill this after 60 days
